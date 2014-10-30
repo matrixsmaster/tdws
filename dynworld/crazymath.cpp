@@ -54,6 +54,16 @@ inline int msig(const float x)
 	return 1;
 }
 
+inline int imax(const int a, const int b)
+{
+	return ((a>b)? a:b);
+}
+
+inline int imin(const int a, const int b)
+{
+	return ((a<b)? a:b);
+}
+
 float ranged(MSMRLCG* rnd, const float in)
 {
 //	int i;
@@ -129,6 +139,33 @@ CPoint2D pointonline(CPoint2D s, CPoint2D e, int step)
 	return CPoint2D(cx,cy);
 }
 
+CPoint2D getnextpoint(CPoint2D s, CPoint2D e)
+{
+	int i;
+	float d;
+	CPoint2D r,c;
+	e = e - s;
+	d = e.Module();
+	for (i = 0; i < 8; i++) {
+		c = CPoint2D(0);
+		switch (i) {
+		case 0: c.Y++; break;
+		case 1: c.X++; c.Y++; break;
+		case 2: c.X++; break;
+		case 3: c.X++; c.Y--; break;
+		case 4: c.Y--; break;
+		case 5: c.X--; c.Y--; break;
+		case 6: c.X--; break;
+		case 7: c.X--; c.Y++; break;
+		}
+		if (distance(c,e) < d) {
+			r = c;
+			d = distance(c,e);
+		}
+	}
+	return r + s;
+}
+
 void normpoint(CPoint2D* pnt, int x0, int y0, int x1, int y1)
 {
 	if (pnt->X < x0) pnt->X = x0;
@@ -145,7 +182,7 @@ bool ispointin(CPoint2D* pnt, int x0, int y0, int x1, int y1)
 float distance(CPoint2D a, CPoint2D b)
 {
 	if (a == b) return 0;
-	float d = powf((float)(a.X - b.X),2.0);
-	d += powf((float)(a.Y - b.Y),2.0);
+	float d = (a.X - b.X) * (a.X - b.X);
+	d += (a.Y - b.Y) * (a.Y - b.Y);
 	return (sqrtf(d));
 }

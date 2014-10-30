@@ -139,6 +139,7 @@ void CNPC::PutVision(CPoint2D ul, NPCVisualIn* arr)
 			}
 		}
 	}
+	my_view_ul = ul;
 }
 
 void CNPC::Quantum(void)

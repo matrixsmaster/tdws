@@ -44,6 +44,7 @@ private:
 	CPoint2D window;
 	bool can_exit,paused;
 	int step_size;
+	WorldStats statistic;
 };
 
 

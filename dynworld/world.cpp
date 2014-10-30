@@ -138,20 +138,20 @@ void CWorld::Cycle(int cycles)
 
 void CWorld::Quantum(void)
 {
-	int x,y,z,u,nc;
-	nc = 0;
+	int x,y,z,u;
+	statistic.population = 0;
 	for (x = 0; x < WRLD_SIZE_X; x++)
 		for (y = 0; y < WRLD_SIZE_Y; y++) {
 			field[x][y]->Quantum();
-			if (field[x][y]->GetNPC()) nc++;
+			if (field[x][y]->GetNPC()) statistic.population++;
 		}
 
-	CNPC** npcarr = (CNPC**)malloc(nc*sizeof(CNPC*));
+	CNPC** npcarr = (CNPC**)malloc(statistic.population*sizeof(CNPC*));
 	z = u = 0;
 	for (x = 0; x < WRLD_SIZE_X; x++)
 		for (y = 0; y < WRLD_SIZE_Y; y++) {
 			if (!field[x][y]->GetNPC()) continue;
-			if ((z < nc) && (npcarr)) {
+			if ((z < statistic.population) && (npcarr)) {
 				for (u = 0; u < z; u++)
 					if (npcarr[u] == field[x][y]->GetNPC()) {
 						u = -1;
@@ -166,9 +166,18 @@ void CWorld::Quantum(void)
 	if (npcarr) free(npcarr);
 }
 
+#define PCNPC_VIEWMACRO if (!ispointin(&cr,ul.X,ul.Y,br.X,br.Y)) break;\
+		rl = cr - ul;\
+		lin = rl.X*WRLD_CHR_VIEW+rl.Y;\
+		if (vbuf[lin].b.typ == CT_Empty) {\
+			vbuf[lin].b.typ = field[cr.X][cr.Y]->GetType();\
+			vbuf[lin].b.symbol = field[cr.X][cr.Y]->Print(true);\
+			vbuf[rl.X*WRLD_CHR_VIEW+rl.Y].npc = field[cr.X][cr.Y]->GetNPC();\
+		}
+
 void CWorld::ProcessNPC(CPoint2D pos)
 {
-	int s,dir,lin;
+	int l,s,dir,lin;
 	NPCVisualIn vbuf[WRLD_CHR_VIEW*WRLD_CHR_VIEW];
 	CPoint2D ul,br,cr,rl;
 
@@ -179,25 +188,51 @@ void CWorld::ProcessNPC(CPoint2D pos)
 	dir = st.direction * 2; //to save the code :))
 	if ((dir < 0) || (dir >= 16)) return;
 
-	memset(vbuf,0,sizeof(vbuf));
 	//gather visual feedback
+	memset(vbuf,0,sizeof(vbuf));
 	ul = pos - CPoint2D(view_cone_table[dir],view_cone_table[dir+1]);
 	br = ul + CPoint2D(WRLD_CHR_VIEW);
 	//FIXME: cover all 'viewing lines' and do some raytracing
 	normpoint(&ul,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
 	normpoint(&br,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
-	for (s = 0;;s++) {
-		cr = pointonline(ul,br,s);
-		if ((cr.X < ul.X) || (cr.X >= br.X) ||
-				(cr.Y < ul.Y) || (cr.Y >= br.Y))
-			break;
-		rl = cr - ul;
-		lin = rl.X*WRLD_CHR_VIEW+rl.Y;
-		if (vbuf[lin].b.typ == CT_Empty) {
-			vbuf[lin].b.typ = field[cr.X][cr.Y]->GetType();
-			vbuf[lin].b.symbol = field[cr.X][cr.Y]->Print(true);
-			vbuf[rl.X*WRLD_CHR_VIEW+rl.Y].npc = field[cr.X][cr.Y]->GetNPC();
+	cr = pos;
+	switch (st.direction) {
+	case 2: case 6:
+		//scroll by Y
+		for (l = ul.Y; l < br.Y; l++) {
+			for (s = 0; s < WRLD_CHR_VIEW*2; s++) {
+				switch (st.direction) {
+				case 2:
+					//look to right side
+					cr = getnextpoint(cr,CPoint2D(br.X,l));
+					break;
+				default:
+					//look to left side
+					cr = getnextpoint(cr,CPoint2D(ul.X,l));
+					break;
+				}
+				PCNPC_VIEWMACRO
+			}
 		}
+		break;
+	default:
+		//scroll by X
+		for (l = ul.X; l < br.X; l++) {
+			for (s = 0; s < WRLD_CHR_VIEW*2; s++) {
+				switch (st.direction) {
+				case 0: case 1: case 7:
+					//look to upper side
+					cr = getnextpoint(cr,CPoint2D(l,ul.Y));
+					break;
+				default:
+					//look by lower side
+					cr = getnextpoint(cr,CPoint2D(l,br.Y));
+					break;
+				}
+				PCNPC_VIEWMACRO
+			}
+		}
+		break;
 	}
 	npc->PutVision(ul,vbuf);
 

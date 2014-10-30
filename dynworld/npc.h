@@ -66,7 +66,9 @@ public:
 	void SetStuck(bool s)	{ my_stats.stuck = s; }
 
 	void PutVision(CPoint2D ul, NPCVisualIn* arr);
+	NPCVisualIn* GetVision(void)  { return (NPCVisualIn*)&view[0]; }
 	NPCVMemCell* GetVMemory(void) { return (NPCVMemCell*)&memory[0]; }
+	CPoint2D GetVisionUL(void)	  { return my_view_ul; }
 
 	void Quantum(void);
 
@@ -80,6 +82,7 @@ private:
 	bool dead;
 	NPCVisualIn view[WRLD_CHR_VIEW][WRLD_CHR_VIEW];
 	NPCVMemCell memory[WRLD_SIZE_X][WRLD_SIZE_Y];
+	CPoint2D my_view_ul; 					//upper-left corner of current view
 	npcsign_t signature;
 };
 

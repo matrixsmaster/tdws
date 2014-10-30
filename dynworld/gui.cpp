@@ -156,14 +156,15 @@ void setfield(CWCell** buf, const int w, const int h)
 	wrldsize = CPoint2D(w,h);
 	base = CPoint2D(0);
 	mygui.target = NULL;
-	mygui.showvismem = false;
+	mygui.showvision = 0;
 	mygui.zoom = 1;
 }
 
 void drawfield()
 {
 	char* lbuf,prev;
-	int i,j,k,x,y,l;
+	int i,j,k,x,y,l,lin;
+	CPoint2D tmp;
 
 	if (!myfield) return;
 
@@ -183,16 +184,32 @@ void drawfield()
 
 			for (j = 0; j < mygui.fw-2; j++) {
 				x = (j + base.X) * mygui.zoom;
+				if ((x >= wrldsize.X) || (x < 0))
+					lbuf[j] = ' ';
+				else {
+					lin = x * wrldsize.Y + y; //linear address
 
-				if (mygui.target && mygui.showvismem) {
-					lbuf[j] = ((x < wrldsize.X) && (x >= 0))?
-							mygui.target->GetVMemory()[x*wrldsize.Y+y].symbol:' ';
-//					lbuf[j] = ((x < wrldsize.X) && (x >= 0))?
-//							vismemory[x*wrldsize.Y+y]:' ';
-					if (!lbuf[j]) lbuf[j] = '`'; //do not append zero bytes
-				} else {
-					lbuf[j] = ((x < wrldsize.X) && (x >= 0))?
-							myfield[x*wrldsize.Y+y]->Print(false):' ';
+					if (mygui.target && mygui.showvision) {
+						switch (mygui.showvision) {
+						case 1: //show NPC's visual memory
+							lbuf[j] = mygui.target->GetVMemory()[lin].symbol;
+							break;
+						case 2: //show NPC's current vision
+							tmp = CPoint2D(x,y) - mygui.target->GetVisionUL();
+							if (ispointin(&tmp,0,0,WRLD_CHR_VIEW,WRLD_CHR_VIEW)) {
+								lin = tmp.X * WRLD_CHR_VIEW + tmp.Y;
+								lbuf[j] = mygui.target->GetVision()[lin].b.symbol;
+								if (mygui.target->GetVision()[lin].npc)
+									lbuf[j] = mygui.target->GetVision()[lin].npc->GetSymbol();
+							} else lbuf[j] = 0;
+							break;
+						default:
+							mygui.showvision = 0;
+						}
+						if (!lbuf[j]) lbuf[j] = '`'; //do not append zero bytes
+					} else {
+						lbuf[j] = myfield[lin]->Print(false);
+					}
 				}
 
 				if (prev != lbuf[j]) {
@@ -271,7 +288,8 @@ bool gui_prockey(int key)
 	case '0':		mygui.zoom = 1; break;
 	case 'T':		mygui.target = NULL; break;
 	case KEY_F(10):	shorthelp(); break; //was F1, but xfce terminal binds it :(
-	case KEY_F(2):	mygui.showvismem = !mygui.showvismem; break;
+	case KEY_F(2):	mygui.showvision = 0; break;
+	case KEY_F(3):	mygui.showvision++; break;
 	default:
 		res = false;
 	}
@@ -287,7 +305,7 @@ CNPC* gui_gettarget()
 void gui_settarget(CNPC* trg)
 {
 	mygui.target = trg;
-	if (!trg) mygui.showvismem = false;
+	if (!trg) mygui.showvision = 0;
 	else oldpnt = trg->GetCrd();
 }
 

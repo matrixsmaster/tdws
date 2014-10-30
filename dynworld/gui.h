@@ -37,7 +37,7 @@ struct SGUISet {
 	char** log;
 	CNPC* target;
 	int zoom;
-	bool showvismem;
+	int showvision;
 };
 
 

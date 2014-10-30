@@ -31,6 +31,7 @@ public:
 	CPoint2D operator / (const int idiv) const { return CPoint2D((X/idiv),(Y/idiv)); }
 	bool operator == (const CPoint2D & comp) const {return ((X==comp.X) && (Y==comp.Y));}
 	bool operator != (const CPoint2D & comp) const {return ((X!=comp.X) || (Y!=comp.Y));}
+	double Module();
 	int X;
 	int Y;
 };
