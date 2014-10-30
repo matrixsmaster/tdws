@@ -37,6 +37,7 @@ private:
 	void Cycle(int cycles);
 	void Quantum(void);
 	void ProcessNPC(CPoint2D pos);
+	void RaytraceNPCVisual(CNPC* npc, int dir, CPoint2D pos);
 	bool MoveNPC(CPoint2D from, CPoint2D to);
 	MSMRLCG* rnd;
 	long init_seed;

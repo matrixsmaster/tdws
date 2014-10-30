@@ -166,6 +166,45 @@ void CWorld::Quantum(void)
 	if (npcarr) free(npcarr);
 }
 
+void CWorld::ProcessNPC(CPoint2D pos)
+{
+	int s,dir;
+
+	CPoint2D pa,pl;
+
+	CNPC* npc = field[pos.X][pos.Y]->GetNPC();
+	npc->Quantum();
+	NPCStats st = npc->GetStats();
+
+	dir = st.direction * 2; //to save the code :))
+	if ((dir < 0) || (dir >= 16)) return;
+
+	s = 0;
+	switch (npc->GetState()) {
+	case NPC_Sleeping:
+		return;
+	case NPC_Running:
+		s++;
+		//no break;
+	case NPC_Walking:
+		s++;
+		pa = pos;
+		while (s--) {
+			pl = pa;
+			pa = pa + CPoint2D(direction_table[dir],direction_table[dir+1]);
+			if (!MoveNPC(pl,pa)) {
+				npc->SetStuck(true);
+				break; //stop moving if it's not possible
+			}
+		}
+		break;
+	default:
+		break;
+	}
+
+	RaytraceNPCVisual(npc,dir,pos);
+}
+
 #define PCNPC_VIEWMACRO if (!ispointin(&cr,ul.X,ul.Y,br.X,br.Y)) break;\
 		rl = cr - ul;\
 		lin = rl.X*WRLD_CHR_VIEW+rl.Y;\
@@ -175,33 +214,30 @@ void CWorld::Quantum(void)
 			vbuf[rl.X*WRLD_CHR_VIEW+rl.Y].npc = field[cr.X][cr.Y]->GetNPC();\
 		}
 
-void CWorld::ProcessNPC(CPoint2D pos)
+//I'd removed this function from main NPC Processing to simplify things :)
+//more params passed to avoid excessive duplications...
+//and just because i'm too laaazyyy
+void CWorld::RaytraceNPCVisual(CNPC* npc, int dir, CPoint2D pos)
 {
-	int l,s,dir,lin;
-	NPCVisualIn vbuf[WRLD_CHR_VIEW*WRLD_CHR_VIEW];
+	int l,s,lin;
+
 	CPoint2D ul,br,cr,rl;
-
-	CNPC* npc = field[pos.X][pos.Y]->GetNPC();
-	npc->Quantum();
-	NPCStats st = npc->GetStats();
-
-	dir = st.direction * 2; //to save the code :))
-	if ((dir < 0) || (dir >= 16)) return;
+	NPCVisualIn vbuf[WRLD_CHR_VIEW*WRLD_CHR_VIEW];
 
 	//gather visual feedback
 	memset(vbuf,0,sizeof(vbuf));
 	ul = pos - CPoint2D(view_cone_table[dir],view_cone_table[dir+1]);
 	br = ul + CPoint2D(WRLD_CHR_VIEW);
-	//FIXME: cover all 'viewing lines' and do some raytracing
+	//FIXME: do some obstacle testing
 	normpoint(&ul,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
 	normpoint(&br,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
-	cr = pos;
-	switch (st.direction) {
+	switch (dir/2) {
 	case 2: case 6:
 		//scroll by Y
 		for (l = ul.Y; l < br.Y; l++) {
+			cr = pos;
 			for (s = 0; s < WRLD_CHR_VIEW*2; s++) {
-				switch (st.direction) {
+				switch (dir/2) {
 				case 2:
 					//look to right side
 					cr = getnextpoint(cr,CPoint2D(br.X,l));
@@ -218,8 +254,9 @@ void CWorld::ProcessNPC(CPoint2D pos)
 	default:
 		//scroll by X
 		for (l = ul.X; l < br.X; l++) {
+			cr = pos;
 			for (s = 0; s < WRLD_CHR_VIEW*2; s++) {
-				switch (st.direction) {
+				switch (dir/2) {
 				case 0: case 1: case 7:
 					//look to upper side
 					cr = getnextpoint(cr,CPoint2D(l,ul.Y));
@@ -235,27 +272,6 @@ void CWorld::ProcessNPC(CPoint2D pos)
 		break;
 	}
 	npc->PutVision(ul,vbuf);
-
-	s = 0;
-	switch (npc->GetState()) {
-	case NPC_Running:
-		s++;
-		//no break;
-	case NPC_Walking:
-		s++;
-		ul = pos;
-		while (s--) {
-			br = ul;
-			ul = ul + CPoint2D(direction_table[dir],direction_table[dir+1]);
-			if (!MoveNPC(br,ul)) {
-				npc->SetStuck(true);
-				break; //stop moving if it's not possible
-			}
-		}
-		break;
-	default:
-		break;
-	}
 }
 
 bool CWorld::MoveNPC(CPoint2D from, CPoint2D to)
