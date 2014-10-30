@@ -80,6 +80,4 @@ static const int view_cone_table[16] = {
 		WRLD_CHR_VIEW,WRLD_CHR_VIEW
 };
 
-extern int gui_cnt,wrl_cnt,npc_cnt,npc_q;
-
 #endif /* WORLD_CONST_H_ */

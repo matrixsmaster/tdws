@@ -304,14 +304,8 @@ CPoint2D gui_getcursor()
 void gui_update()
 {
 	erase();
-	gui_cnt++;
-	if (mygui.target) {
-		float d = distance(mygui.target->GetCrd(),oldpnt);
-		if (d > 2.0)
-			abort();
+	if (mygui.target)
 		base = mygui.target->GetCrd() - center;
-		oldpnt = mygui.target->GetCrd();
-	}
 	drawfield();
 	drawinfo();
 	drawlog();

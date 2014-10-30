@@ -17,14 +17,10 @@
 
 static CWorld* world = NULL;
 
-int gui_cnt,wrl_cnt,npc_cnt,npc_q;
-
 int main(int argc, char* argv[])
 {
 	int key,ret,delay;
 	long seed = 0;
-
-	gui_cnt = wrl_cnt = npc_cnt = npc_q = 0;
 
 	ret = gui_init();
 	if (ret) {

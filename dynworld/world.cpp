@@ -38,7 +38,6 @@ CWorld::CWorld(long seed)
 	while (z--)
 		if (!field[rnd->RangedNumber(WRLD_SIZE_X)][rnd->RangedNumber(WRLD_SIZE_Y)]->SpawnNPC())
 			break;
-		else npc_q++;
 
 	window = CPoint2D(0);
 	can_exit = paused = false;
@@ -140,13 +139,13 @@ void CWorld::Cycle(int cycles)
 void CWorld::Quantum(void)
 {
 	int x,y,z,u,nc;
-	wrl_cnt++;
 	nc = 0;
 	for (x = 0; x < WRLD_SIZE_X; x++)
 		for (y = 0; y < WRLD_SIZE_Y; y++) {
 			field[x][y]->Quantum();
 			if (field[x][y]->GetNPC()) nc++;
 		}
+
 	CNPC** npcarr = (CNPC**)malloc(nc*sizeof(CNPC*));
 	z = u = 0;
 	for (x = 0; x < WRLD_SIZE_X; x++)
@@ -170,42 +169,37 @@ void CWorld::Quantum(void)
 void CWorld::ProcessNPC(CPoint2D pos)
 {
 	int s,dir,lin;
-//	NPCVisualIn vbuf[WRLD_CHR_VIEW*WRLD_CHR_VIEW];
+	NPCVisualIn vbuf[WRLD_CHR_VIEW*WRLD_CHR_VIEW];
 	CPoint2D ul,br,cr,rl;
 
 	CNPC* npc = field[pos.X][pos.Y]->GetNPC();
 	npc->Quantum();
 	NPCStats st = npc->GetStats();
 
-	CPoint2D dbga = npc->GetCrd();
-	if (!gui_gettarget())
-		gui_settarget(npc);
-	npc_cnt++;
-
 	dir = st.direction * 2; //to save the code :))
 	if ((dir < 0) || (dir >= 16)) return;
 
-//	memset(vbuf,0,sizeof(vbuf));
-//	//gather visual feedback
-//	ul = pos - CPoint2D(view_cone_table[dir],view_cone_table[dir+1]);
-//	br = ul + CPoint2D(WRLD_CHR_VIEW);
-//	//FIXME: cover all 'viewing lines' and do some raytracing
-//	normpoint(&ul,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
-//	normpoint(&br,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
-//	for (s = 0;;s++) {
-//		cr = pointonline(ul,br,s);
-//		if ((cr.X < ul.X) || (cr.X >= br.X) ||
-//				(cr.Y < ul.Y) || (cr.Y >= br.Y))
-//			break;
-//		rl = cr - ul;
-//		lin = rl.X*WRLD_CHR_VIEW+rl.Y;
-//		if (vbuf[lin].b.typ == CT_Empty) {
-//			vbuf[lin].b.typ = field[cr.X][cr.Y]->GetType();
-//			vbuf[lin].b.symbol = field[cr.X][cr.Y]->Print(true);
-//			vbuf[rl.X*WRLD_CHR_VIEW+rl.Y].npc = field[cr.X][cr.Y]->GetNPC();
-//		}
-//	}
-//	npc->PutVision(ul,vbuf);
+	memset(vbuf,0,sizeof(vbuf));
+	//gather visual feedback
+	ul = pos - CPoint2D(view_cone_table[dir],view_cone_table[dir+1]);
+	br = ul + CPoint2D(WRLD_CHR_VIEW);
+	//FIXME: cover all 'viewing lines' and do some raytracing
+	normpoint(&ul,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
+	normpoint(&br,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
+	for (s = 0;;s++) {
+		cr = pointonline(ul,br,s);
+		if ((cr.X < ul.X) || (cr.X >= br.X) ||
+				(cr.Y < ul.Y) || (cr.Y >= br.Y))
+			break;
+		rl = cr - ul;
+		lin = rl.X*WRLD_CHR_VIEW+rl.Y;
+		if (vbuf[lin].b.typ == CT_Empty) {
+			vbuf[lin].b.typ = field[cr.X][cr.Y]->GetType();
+			vbuf[lin].b.symbol = field[cr.X][cr.Y]->Print(true);
+			vbuf[rl.X*WRLD_CHR_VIEW+rl.Y].npc = field[cr.X][cr.Y]->GetNPC();
+		}
+	}
+	npc->PutVision(ul,vbuf);
 
 	s = 0;
 	switch (npc->GetState()) {
@@ -227,12 +221,6 @@ void CWorld::ProcessNPC(CPoint2D pos)
 	default:
 		break;
 	}
-
-	CPoint2D dbgb = npc->GetCrd();
-	if ((int)ceil(distance(dbga,dbgb)) > 2)
-		printlog("Illegal jump detected!\n");
-	if ((int)ceil(distance(dbgb,pos)) > 2)
-		printlog("Illegal jump detected!\n");
 }
 
 bool CWorld::MoveNPC(CPoint2D from, CPoint2D to)

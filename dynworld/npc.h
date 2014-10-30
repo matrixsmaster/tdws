@@ -61,7 +61,7 @@ public:
 	bool GetIsDead(void)	{ return dead; }
 	CPoint2D GetCrd(void)	{ return my_coord; }
 	void SetOnBed(bool b)	{ my_stats.on_bed = b; }
-	void SetCrd(CPoint2D c) { if (!(my_coord==CPoint2D(0))) { if (distance(c,my_coord)>2.0) abort(); } my_coord = c; }
+	void SetCrd(CPoint2D c) { my_coord = c; }
 	npcsign_t GetSign(void) { return signature; }
 	void SetStuck(bool s)	{ my_stats.stuck = s; }
 
