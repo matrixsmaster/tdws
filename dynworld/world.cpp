@@ -27,31 +27,16 @@ CWorld::CWorld(long seed)
 		for (x = 0; x < WRLD_SIZE_X; x++)
 			field[x][y] = new CWCell(rnd,CT_Forest,CPoint2D(x,y));
 
-	/* probability distribution testing
-	int arr[] = {5,19,5,20,6,20,5,20};
-	int res[] = {0,0,0,0,0,0,0,0};
-	for (y=0; y<100000; y++)
-		res[selfrom(rnd,arr,8)]++;
-	float z,check = 0;
-	for (x=0; x<8; x++) {
-		z = ((float)res[x]/(float)(y-1));
-		printf("%d)\t%d:\t%d\t(%f)\n",x,arr[x],res[x],z);
-		check += z;
-	}
-	printf("check: %f\n",check);*/
-
 	CreateFields(CT_Sand,(WRLD_SIZE_X*WRLD_SIZE_Y/100*WRLD_WILDR));
 	CreateFields(CT_Field,(WRLD_SIZE_X*WRLD_SIZE_Y/100*WRLD_FIELD));
 	CreateFields(CT_Mount,(WRLD_SIZE_X*WRLD_SIZE_Y/100*WRLD_MOUNT));
 	CreateRivers(); //this must be the last call to land generator
 
-	//people = NULL;
-	//population = 0;
 	z = (int)floor((float)(WRLD_SIZE_X*WRLD_SIZE_Y/100)*WRLD_INIT_POP);
 	printlog("Spawning max %d NPCs\n",z);
 	if (z < 1) z = 1;
 	while (z--)
-		if (!CreateNPC(CPoint2D(rnd->RangedNumber(WRLD_SIZE_X),rnd->RangedNumber(WRLD_SIZE_Y))))
+		if (!field[rnd->RangedNumber(WRLD_SIZE_X)][rnd->RangedNumber(WRLD_SIZE_Y)]->SpawnNPC())
 			break;
 
 	window = CPoint2D(0);
@@ -66,8 +51,6 @@ CWorld::~CWorld()
 	for (y = 0; y < WRLD_SIZE_Y; y++)
 		for (x = 0; x < WRLD_SIZE_X; x++)
 			delete field[x][y];
-	//while (population--) delete people[population];
-	//free(people);
 	delete rnd;
 	printlog("WORLD DESTROYED\n");
 }
@@ -113,39 +96,6 @@ void CWorld::CreateRivers()
 	if (rnd->RangedNumber(100) < WRLD_GEN_FORK_P)
 		CreateRivers();
 }
-
-bool CWorld::CreateNPC(CPoint2D crd)
-{
-	/*if (field[crd.X][crd.Y]->isNPCon()) return false;
-	CNPC** ptr = (CNPC**)realloc(people,(population+1)*sizeof(CNPC*));
-	if (!ptr) {
-		fprintf(stderr,"Unable to create NPC\n");
-		return false;
-	}
-	people = ptr;
-	ptr += population++;
-	*ptr = new CNPC(rnd);
-	field[crd.X][crd.Y]->AddNPC(*ptr);*/
-//	printlog("NPC @ %d:%d\n",crd.X,crd.Y);
-	return field[crd.X][crd.Y]->SpawnNPC();
-	//return true;
-}
-
-//void CWorld::PrintWorld()
-//{
-//	int x,y;
-//	printf("\n\n%04d-->\n",window.X);
-//	for (y = 0; y < WRLD_PRINT_H; y++) {
-//		if (y + window.Y >= WRLD_SIZE_Y) break;
-//		printf("%04d  ",window.Y+y);
-//		for (x = 0; x < WRLD_PRINT_W; x++) {
-//			if (x + window.X >= WRLD_SIZE_X) break;
-//			field[x+window.X][y+window.Y]->Print();
-//		}
-//		printf("\n");
-//	}
-//}
-
 
 bool CWorld::ProcKey(int ch)
 {
@@ -197,29 +147,27 @@ void CWorld::ProcessNPC(CPoint2D pos)
 	dir = st.direction * 2; //to save the code :))
 	if ((dir < 0) || (dir >= 16)) return;
 
-//	if ((npc->GetCrd() != pos) && (st.direction < 8)) {
-		memset(vbuf,0,sizeof(vbuf));
-		//put visual feedback
-		ul = pos - CPoint2D(view_cone_table[dir],view_cone_table[dir+1]);
-		br = ul + CPoint2D(WRLD_CHR_VIEW);
-		//FIXME: cover all 'viewing lines' and do some raytracing
-		normpoint(&ul,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
-		normpoint(&br,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
-		for (s = 0;;s++) {
-			cr = pointonline(ul,br,s);
-			if ((cr.X < ul.X) || (cr.X >= br.X) ||
-					(cr.Y < ul.Y) || (cr.Y >= br.Y))
-				break;
-			rl = cr - ul;
-			lin = rl.X*WRLD_CHR_VIEW+rl.Y;
-			if (vbuf[lin].b.typ == CT_Empty) {
-				vbuf[lin].b.typ = field[cr.X][cr.Y]->GetType();
-				vbuf[lin].b.symbol = field[cr.X][cr.Y]->Print(true);
-				vbuf[rl.X*WRLD_CHR_VIEW+rl.Y].npc = field[cr.X][cr.Y]->GetNPC();
-			}
+	memset(vbuf,0,sizeof(vbuf));
+	//put visual feedback
+	ul = pos - CPoint2D(view_cone_table[dir],view_cone_table[dir+1]);
+	br = ul + CPoint2D(WRLD_CHR_VIEW);
+	//FIXME: cover all 'viewing lines' and do some raytracing
+	normpoint(&ul,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
+	normpoint(&br,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
+	for (s = 0;;s++) {
+		cr = pointonline(ul,br,s);
+		if ((cr.X < ul.X) || (cr.X >= br.X) ||
+				(cr.Y < ul.Y) || (cr.Y >= br.Y))
+			break;
+		rl = cr - ul;
+		lin = rl.X*WRLD_CHR_VIEW+rl.Y;
+		if (vbuf[lin].b.typ == CT_Empty) {
+			vbuf[lin].b.typ = field[cr.X][cr.Y]->GetType();
+			vbuf[lin].b.symbol = field[cr.X][cr.Y]->Print(true);
+			vbuf[rl.X*WRLD_CHR_VIEW+rl.Y].npc = field[cr.X][cr.Y]->GetNPC();
 		}
-		npc->PutVision(ul,vbuf);
-//	}
+	}
+	npc->PutVision(ul,vbuf);
 
 	s = 0;
 	switch (npc->GetState()) {
@@ -231,7 +179,6 @@ void CWorld::ProcessNPC(CPoint2D pos)
 		ul = pos;
 		while (s--) {
 			br = ul;
-			//ul += CPoint2D(direction_table[dir],direction_table[dir+1]);
 			ul = ul + CPoint2D(direction_table[dir],direction_table[dir+1]);
 			if (!MoveNPC(br,ul)) {
 				npc->SetStuck(true);

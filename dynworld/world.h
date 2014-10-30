@@ -27,7 +27,7 @@ public:
 private:
 	void CreateFields(CellType typ, int maxsq);
 	void CreateRivers(void);
-	bool CreateNPC(CPoint2D crd);
+//	bool CreateNPC(CPoint2D crd);
 	void Cycle(int cycles);
 	void Quantum(void);
 	void ProcessNPC(CPoint2D pos);
@@ -35,8 +35,6 @@ private:
 	MSMRLCG* rnd;
 	long init_seed;
 	CWCell* field[WRLD_SIZE_X][WRLD_SIZE_Y];
-	//CNPC** people;
-	//int population;
 	CPoint2D window;
 	bool can_exit,paused;
 };

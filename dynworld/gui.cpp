@@ -117,10 +117,6 @@ void putlogstr(const char* str)
 	int l = strlen(str);
 	if (l < 1) return;
 	if (str[l-1] == '\n') l--; //remove trailing LF
-//	int p = l / (mygui.lw - 2);
-//	for (i = 0; i < l; i++)
-//		if (str[i] == '\n') p++;
-	//shiftlog(p);
 	//FIXME: faster algorithm is easily possible, but i'm too lazy now
 	char* cs = (char*)str;
 	char* es = mygui.log[mygui.lh-3];
