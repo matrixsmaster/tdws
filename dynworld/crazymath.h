@@ -26,5 +26,6 @@ int selfrom(MSMRLCG* rnd, int* arr, const int len);
 CPoint2D pointonline(CPoint2D s, CPoint2D e, int step);
 void normpoint(CPoint2D* pnt, int x0, int y0, int x1, int y1);
 bool ispointin(CPoint2D* pnt, int x0, int y0, int x1, int y1);
+float distance(CPoint2D a, CPoint2D b);
 
 #endif /* CRAZYMATH_H_ */

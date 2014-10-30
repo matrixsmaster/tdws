@@ -80,6 +80,8 @@ bool CNPC::PrintInfo(char* str, int m)
 	case 4: snprintf(str,m-1,"NPC: android\n"); break;
 	}
 
+	snprintf(buf,m-1,"Signature: %ld\n",signature);
+	strncat(str,buf,m-1);
 	snprintf(buf,m-1,"Age: %d / %d\n",tick,chrom[CHR_LIFESP]);
 	strncat(str,buf,m-1);
 	snprintf(buf,m-1,"Strength %d\nAttract. %d\n",chrom[CHR_STRGTH],chrom[CHR_ATTRCT]);
@@ -106,6 +108,9 @@ bool CNPC::PrintInfo(char* str, int m)
 		break;
 	case NPC_Browsing:
 		snprintf(buf,m-1,"Browsing\n");
+		break;
+	case NPC_Talking:
+		snprintf(buf,m-1,"Talking to %ld\n",my_stats.talk_to->GetSign());
 		break;
 	}
 	strncat(str,buf,m-1);
@@ -161,6 +166,7 @@ void CNPC::Quantum(void)
 			my_stats.stuck = false;
 			my_state = NPC_Idle;
 		}
+		my_stats.idle_count = 0;
 		break;
 
 	case NPC_Sleeping:
@@ -170,6 +176,7 @@ void CNPC::Quantum(void)
 			my_stats.stamina++;
 		if (my_stats.stamina >= chrom[CHR_STRGTH])
 			my_state = NPC_Idle;
+		my_stats.idle_count = 0;
 		break;
 
 	case NPC_Browsing:

@@ -26,6 +26,7 @@ public:
 	char Print(bool raw);
 	bool PrintInfo(char* str, int m);
 	void Quantum(void);
+
 private:
 	MSMRLCG* rnd;
 	CellType cell_type;

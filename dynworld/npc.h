@@ -20,7 +20,8 @@ enum NPCState {
 	NPC_Walking,
 	NPC_Running,
 	NPC_Sleeping,
-	NPC_Browsing
+	NPC_Browsing,
+	NPC_Talking
 };
 
 typedef struct SNPCStats {
@@ -29,6 +30,7 @@ typedef struct SNPCStats {
 	int idle_count;
 	bool on_bed;
 	bool stuck;
+	CNPC* talk_to;
 } NPCStats;
 
 typedef struct SNPCVMemCell {
@@ -59,7 +61,7 @@ public:
 	bool GetIsDead(void)	{ return dead; }
 	CPoint2D GetCrd(void)	{ return my_coord; }
 	void SetOnBed(bool b)	{ my_stats.on_bed = b; }
-	void SetCrd(CPoint2D c) { my_coord = c; }
+	void SetCrd(CPoint2D c) { if (!(my_coord==CPoint2D(0))) { if (distance(c,my_coord)>2.0) abort(); } my_coord = c; }
 	npcsign_t GetSign(void) { return signature; }
 	void SetStuck(bool s)	{ my_stats.stuck = s; }
 
@@ -67,6 +69,7 @@ public:
 	NPCVMemCell* GetVMemory(void) { return (NPCVMemCell*)&memory[0]; }
 
 	void Quantum(void);
+
 private:
 	int chrom[CHROM_LENGTH];
 	MSMRLCG* rnd;

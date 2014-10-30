@@ -56,13 +56,14 @@ inline int msig(const float x)
 
 float ranged(MSMRLCG* rnd, const float in)
 {
-	int i;
+//	int i;
 	float x = (float)rnd->NextNumber()/(float)RAND_MAX;
 	int p = mcpow(mfabs(in));
-	if (p>0)
-		for (i=0; i<p; i++) x *= 10;
-	else
-		for (i=p; i<0; i++) x /= 10;
+//	if (p>0)
+//		for (i=0; i<p; i++) x *= 10;
+//	else
+//		for (i=p; i<0; i++) x /= 10;
+	x *= powf(10.0,(float)p);
 	return x;
 }
 
@@ -139,4 +140,12 @@ void normpoint(CPoint2D* pnt, int x0, int y0, int x1, int y1)
 bool ispointin(CPoint2D* pnt, int x0, int y0, int x1, int y1)
 {
 	return (!((pnt->X < x0) || (pnt->Y < y0) || (pnt->X >= x1) || (pnt->Y >= y1)));
+}
+
+float distance(CPoint2D a, CPoint2D b)
+{
+	if (a == b) return 0;
+	float d = powf((float)(a.X - b.X),2.0);
+	d += powf((float)(a.Y - b.Y),2.0);
+	return (sqrtf(d));
 }

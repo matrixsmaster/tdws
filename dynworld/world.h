@@ -16,14 +16,20 @@
 #include "gui.h"
 #include "world_const.h"
 
+typedef struct SWorldStats {
+	int population;
+} WorldStats;
+
 class CWorld {
 public:
 	CWorld(long seed);
 	~CWorld(void);
-	void PrintWorld(void);
+//	void PrintWorld(void);
+	void Update(void);
 	bool ProcKey(int ch);
 	bool isReadyToQuit(void) { return can_exit; }
 	long getInitSeed(void)	 { return init_seed; }
+
 private:
 	void CreateFields(CellType typ, int maxsq);
 	void CreateRivers(void);
@@ -37,6 +43,7 @@ private:
 	CWCell* field[WRLD_SIZE_X][WRLD_SIZE_Y];
 	CPoint2D window;
 	bool can_exit,paused;
+	int step_size;
 };
 
 

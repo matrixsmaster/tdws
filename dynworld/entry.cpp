@@ -17,10 +17,14 @@
 
 static CWorld* world = NULL;
 
+int gui_cnt,wrl_cnt,npc_cnt,npc_q;
+
 int main(int argc, char* argv[])
 {
-	int key,ret;
+	int key,ret,delay;
 	long seed = 0;
+
+	gui_cnt = wrl_cnt = npc_cnt = npc_q = 0;
 
 	ret = gui_init();
 	if (ret) {
@@ -35,8 +39,9 @@ int main(int argc, char* argv[])
 
 	world = new CWorld(seed);
 
+	delay = 1;
 	do {
-		ret = halfdelay(1);
+		ret = halfdelay(delay);
 		if (ret != ERR) key = getch();
 		else key = 0;
 
@@ -49,6 +54,14 @@ int main(int argc, char* argv[])
 		case 'S':
 			printlog("Init seed for this world was %ld\n",world->getInitSeed());
 			break;
+		case ']':
+			delay = (delay < 255)? delay+1:255;
+			printlog("delay = %d\n",delay);
+			break;
+		case '[':
+			delay = (delay > 1)? delay-1:1;
+			printlog("delay = %d\n",delay);
+			break;
 		default:
 			world->ProcKey(key);
 		}
@@ -58,6 +71,8 @@ int main(int argc, char* argv[])
 			sleep(1);
 			gui_softreset();
 		}
+
+		world->Update();
 	} while (!world->isReadyToQuit());
 
 	delete world;

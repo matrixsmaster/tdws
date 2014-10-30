@@ -13,11 +13,13 @@
 #include "CPoint2D.h"
 #include "gui.h"
 #include "gui_help.h"
+#include "crazymath.h" //for debug only
 
 static WINDOW *scrn, *field, *view, *log;
 static struct SGUISet mygui;
 static CWCell** myfield;
 static CPoint2D wrldsize,base,center;
+CPoint2D oldpnt;
 
 static void remwindows()
 {
@@ -286,6 +288,7 @@ void gui_settarget(CNPC* trg)
 {
 	mygui.target = trg;
 	if (!trg) mygui.showvismem = false;
+	else oldpnt = trg->GetCrd();
 }
 
 CPoint2D gui_getcursor()
@@ -301,8 +304,14 @@ CPoint2D gui_getcursor()
 void gui_update()
 {
 	erase();
-	if (mygui.target)
+	gui_cnt++;
+	if (mygui.target) {
+		float d = distance(mygui.target->GetCrd(),oldpnt);
+		if (d > 2.0)
+			abort();
 		base = mygui.target->GetCrd() - center;
+		oldpnt = mygui.target->GetCrd();
+	}
 	drawfield();
 	drawinfo();
 	drawlog();
