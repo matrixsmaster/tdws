@@ -34,8 +34,10 @@ enum CellType {
 
 #define WRLD_INIT_POP 0.5
 
-#define CHR_MAXLIFESPAN 12345
+#define CHR_MAXLIFESPAN 20123
 #define CHR_NUMTRAITS 8
+#define CHR_TALKDISTMUL ((float)(1/20))
+#define CHR_TALKMAXAGE 4
 
 #define CHR_GENDER 0
 #define CHR_STRGTH 1
@@ -50,7 +52,7 @@ enum CellType {
 #define CHROM_LENGTH 9
 
 static const int chrom_max[CHROM_LENGTH] = {
-		4,100,100,CHR_MAXLIFESPAN,
+		4,300,100,CHR_MAXLIFESPAN,
 		CHR_NUMTRAITS,CHR_NUMTRAITS,
 		CHR_NUMTRAITS,CHR_NUMTRAITS,
 		50
@@ -65,7 +67,7 @@ static const int direction_table[16] = {
 };
 
 //view 'distance' must be an odd value
-#define WRLD_CHR_VIEW 7
+#define WRLD_CHR_VIEW 9
 //to shorten the cone table
 #define WRLD_CHR_VIEW_HALF (WRLD_CHR_VIEW/2)
 

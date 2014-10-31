@@ -88,17 +88,17 @@ float devi(MSMRLCG* rnd, const float org, const float bmin, const float bpls)
 	return (org+a);
 }
 
-//static int cmpint(const void* a, const void* b)
-//{
-//	if (*(int*)a < *(int*)b) return -1;
-//	else if (*(int*)a == *(int*)b) return 0;
-//	else return 1;
-//}
-//
-//static int cmpint_rev(const void* a, const void* b)
-//{
-//	return (-cmpint(a,b));
-//}
+int cmpint(const void* a, const void* b)
+{
+	if (*(int*)a < *(int*)b) return -1;
+	else if (*(int*)a == *(int*)b) return 0;
+	else return 1;
+}
+
+int cmpint_rev(const void* a, const void* b)
+{
+	return (-cmpint(a,b));
+}
 
 int selfrom(MSMRLCG* rnd, int* arr, const int len)
 {
@@ -171,13 +171,26 @@ void normpoint(CPoint2D* pnt, int x0, int y0, int x1, int y1)
 {
 	if (pnt->X < x0) pnt->X = x0;
 	if (pnt->Y < y0) pnt->Y = y0;
-	if (pnt->X >= x1) pnt->X = x1;
-	if (pnt->Y >= y1) pnt->Y = y1;
+	if (pnt->X >= x1) pnt->X = x1 - 1;
+	if (pnt->Y >= y1) pnt->Y = y1 - 1;
+}
+
+void normpoint_b(CPoint2D* pnt, int x0, int y0, int x1, int y1)
+{
+	if (pnt->X < x0) pnt->X = x0;
+	if (pnt->Y < y0) pnt->Y = y0;
+	if (pnt->X > x1) pnt->X = x1;
+	if (pnt->Y > y1) pnt->Y = y1;
 }
 
 bool ispointin(CPoint2D* pnt, int x0, int y0, int x1, int y1)
 {
 	return (!((pnt->X < x0) || (pnt->Y < y0) || (pnt->X >= x1) || (pnt->Y >= y1)));
+}
+
+bool ispointin_b(CPoint2D* pnt, int x0, int y0, int x1, int y1)
+{
+	return (!((pnt->X < x0) || (pnt->Y < y0) || (pnt->X > x1) || (pnt->Y > y1)));
 }
 
 float distance(CPoint2D a, CPoint2D b)

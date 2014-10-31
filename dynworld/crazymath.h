@@ -24,11 +24,15 @@ inline int imax(const int a, const int b);
 inline int imin(const int a, const int b);
 float ranged(MSMRLCG* rnd, const float in);
 float devi(MSMRLCG* rnd, const float org, const float bmin, const float bpls);
+int cmpint(const void* a, const void* b);
+int cmpint_rev(const void* a, const void* b);
 int selfrom(MSMRLCG* rnd, int* arr, const int len);
 CPoint2D pointonline(CPoint2D s, CPoint2D e, int step);
 CPoint2D getnextpoint(CPoint2D s, CPoint2D e);
 void normpoint(CPoint2D* pnt, int x0, int y0, int x1, int y1);
+void normpoint_b(CPoint2D* pnt, int x0, int y0, int x1, int y1);
 bool ispointin(CPoint2D* pnt, int x0, int y0, int x1, int y1);
+bool ispointin_b(CPoint2D* pnt, int x0, int y0, int x1, int y1);
 float distance(CPoint2D a, CPoint2D b);
 
 #endif /* CRAZYMATH_H_ */

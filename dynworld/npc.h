@@ -21,7 +21,8 @@ enum NPCState {
 	NPC_Running,
 	NPC_Sleeping,
 	NPC_Browsing,
-	NPC_Talking
+	NPC_Talking,
+	NPC_Building
 };
 
 typedef struct SNPCStats {
@@ -30,6 +31,9 @@ typedef struct SNPCStats {
 	int idle_count;
 	bool on_bed;
 	bool stuck;
+	bool want_change;
+	bool own_home;
+	CPoint2D aim;
 	CNPC* talk_to;
 } NPCStats;
 
@@ -43,6 +47,12 @@ typedef struct SNPCVisualIn {
 	NPCVMemCell b; //basic information to be stored
 	CNPC* npc;
 } NPCVisualIn;
+
+typedef struct SNPCBuildPlan {
+	CPoint2D ul; //upper-left corner
+	CellType map[WRLD_CHR_VIEW][WRLD_CHR_VIEW];
+} NPCBuildPlan;
+
 
 class CNPC {
 public:
@@ -66,13 +76,23 @@ public:
 	void SetStuck(bool s)	{ my_stats.stuck = s; }
 
 	void PutVision(CPoint2D ul, NPCVisualIn* arr);
-	NPCVisualIn* GetVision(void)  { return (NPCVisualIn*)&view[0]; }
-	NPCVMemCell* GetVMemory(void) { return (NPCVMemCell*)&memory[0]; }
-	CPoint2D GetVisionUL(void)	  { return my_view_ul; }
+	NPCVisualIn* GetVision(void)	{ return (NPCVisualIn*)&view[0]; }
+	NPCVMemCell* GetVMemory(void)	{ return (NPCVMemCell*)&memory[0]; }
+	CPoint2D GetVisionUL(void)		{ return my_view_ul; }
+	bool GetWantCellChange(void)	{ return my_stats.want_change; }
+
+	void SetDirectionTo(CPoint2D aim);
+	int GetWantTalkTo(CNPC* one);
+	bool StartTalkTo(CNPC* caller);
+	void StopTalkTo(CNPC* caller);
 
 	void Quantum(void);
 
 private:
+	bool PlanBuilding(void);
+	bool PlanTalking(void);
+	bool StartTalking(CNPC* npc);
+
 	int chrom[CHROM_LENGTH];
 	MSMRLCG* rnd;
 	int tick;
@@ -84,6 +104,7 @@ private:
 	NPCVMemCell memory[WRLD_SIZE_X][WRLD_SIZE_Y];
 	CPoint2D my_view_ul; 					//upper-left corner of current view
 	npcsign_t signature;
+	NPCBuildPlan my_plan;
 };
 
 #endif /* NPC_H_ */

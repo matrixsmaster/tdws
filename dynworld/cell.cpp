@@ -57,11 +57,13 @@ char CWCell::Print(bool raw)
 	switch (cell_type) {
 	case CT_Water:		return('~'); break;
 	case CT_Sand:		return('.'); break;
-	case CT_Field: 		return('_'); break;
+	case CT_Field: 		return('W'); break;
 	case CT_Forest: 	return('!'); break;
 	case CT_Mount:	 	return('^'); break;
 	case CT_HH_Wall: 	return('*'); break;
-	case CT_HH_Door: 	return('D'); break;
+	case CT_HH_Door: 	return('#'); break;
+	case CT_HH_Bed: 	return('_'); break;
+	case CT_HH_Bowl: 	return('@'); break;
 	default:		//to make compiler happy
 		return(' ');
 	}

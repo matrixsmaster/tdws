@@ -211,7 +211,10 @@ void CWorld::ProcessNPC(CPoint2D pos)
 		if (vbuf[lin].b.typ == CT_Empty) {\
 			vbuf[lin].b.typ = field[cr.X][cr.Y]->GetType();\
 			vbuf[lin].b.symbol = field[cr.X][cr.Y]->Print(true);\
-			vbuf[rl.X*WRLD_CHR_VIEW+rl.Y].npc = field[cr.X][cr.Y]->GetNPC();\
+			if ((field[cr.X][cr.Y]->GetNPC()) && \
+					(field[cr.X][cr.Y]->GetNPC()->GetAge() + 2 < \
+							field[cr.X][cr.Y]->GetNPC()->GetGenome()[CHR_LIFESP]))\
+							vbuf[rl.X*WRLD_CHR_VIEW+rl.Y].npc = field[cr.X][cr.Y]->GetNPC();\
 		}\
 		if (!field[cr.X][cr.Y]->ViewThru()) break;
 
