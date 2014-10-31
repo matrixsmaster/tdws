@@ -25,6 +25,8 @@ public:
 	CNPC* GetNPC(void) { return npconcell; }
 	char Print(bool raw);
 	bool PrintInfo(char* str, int m);
+	bool ViewThru(void);
+	bool Routable(void);
 	void Quantum(void);
 
 private:

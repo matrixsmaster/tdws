@@ -75,6 +75,37 @@ bool CWCell::PrintInfo(char* str, int m)
 	return npconcell->PrintInfo(str,m);
 }
 
+bool CWCell::ViewThru(void)
+{
+	switch (cell_type) {
+	case CT_Empty:
+	case CT_Water:
+	case CT_Sand:
+	case CT_Field:
+	case CT_Forest:
+	case CT_HH_Empty:
+	case CT_HH_Bed:
+	case CT_HH_Bowl:
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool CWCell::Routable(void)
+{
+	switch (cell_type) {
+	case CT_Empty:
+	case CT_Sand:
+	case CT_Field:
+	case CT_Forest:
+	case CT_HH_Empty:
+		return true;
+	default:
+		return false;
+	}
+}
+
 void CWCell::Quantum(void)
 {
 	if (npconcell) {

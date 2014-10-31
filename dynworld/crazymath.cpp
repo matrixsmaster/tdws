@@ -142,7 +142,7 @@ CPoint2D pointonline(CPoint2D s, CPoint2D e, int step)
 CPoint2D getnextpoint(CPoint2D s, CPoint2D e)
 {
 	int i;
-	float d;
+	float d,cd;
 	CPoint2D r,c;
 	e = e - s;
 	d = e.Module();
@@ -158,9 +158,10 @@ CPoint2D getnextpoint(CPoint2D s, CPoint2D e)
 		case 6: c.X--; break;
 		case 7: c.X--; c.Y++; break;
 		}
-		if (distance(c,e) < d) {
+		cd = distance(c,e);
+		if (cd < d) {
 			r = c;
-			d = distance(c,e);
+			d = cd;
 		}
 	}
 	return r + s;

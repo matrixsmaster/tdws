@@ -16,7 +16,7 @@
 
 #define WRLD_FIELD 30
 #define WRLD_WILDR 10
-#define WRLD_MOUNT 1
+#define WRLD_MOUNT 7
 
 enum CellType {
 	CT_Empty = 0,
@@ -71,7 +71,7 @@ static const int direction_table[16] = {
 
 static const int view_cone_table[16] = {
 		WRLD_CHR_VIEW_HALF,WRLD_CHR_VIEW,
-		-1,1,
+		-1,WRLD_CHR_VIEW,
 		-1,WRLD_CHR_VIEW_HALF,
 		-1,-1,
 		WRLD_CHR_VIEW_HALF,-1,

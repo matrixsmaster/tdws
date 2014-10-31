@@ -212,7 +212,8 @@ void CWorld::ProcessNPC(CPoint2D pos)
 			vbuf[lin].b.typ = field[cr.X][cr.Y]->GetType();\
 			vbuf[lin].b.symbol = field[cr.X][cr.Y]->Print(true);\
 			vbuf[rl.X*WRLD_CHR_VIEW+rl.Y].npc = field[cr.X][cr.Y]->GetNPC();\
-		}
+		}\
+		if (!field[cr.X][cr.Y]->ViewThru()) break;
 
 //I'd removed this function from main NPC Processing to simplify things :)
 //more params passed to avoid excessive duplications...
@@ -228,7 +229,6 @@ void CWorld::RaytraceNPCVisual(CNPC* npc, int dir, CPoint2D pos)
 	memset(vbuf,0,sizeof(vbuf));
 	ul = pos - CPoint2D(view_cone_table[dir],view_cone_table[dir+1]);
 	br = ul + CPoint2D(WRLD_CHR_VIEW);
-	//FIXME: do some obstacle testing
 	normpoint(&ul,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
 	normpoint(&br,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
 	switch (dir/2) {
@@ -276,21 +276,14 @@ void CWorld::RaytraceNPCVisual(CNPC* npc, int dir, CPoint2D pos)
 
 bool CWorld::MoveNPC(CPoint2D from, CPoint2D to)
 {
-	if ((to.X < 0) || (to.Y < 0) || (to.X >= WRLD_SIZE_X) || (to.Y >= WRLD_SIZE_Y))
-		return false;
+	//checking route
+	if (!ispointin(&to,0,0,WRLD_SIZE_X,WRLD_SIZE_Y)) return false;
 	if (!field[from.X][from.Y]->GetNPC()) return false;
 	if (field[to.X][to.Y]->GetNPC()) return false;
-	//check movement ability to
-	switch (field[to.X][to.Y]->GetType()) {
-	case CT_Empty:
-	case CT_Sand:
-	case CT_Field:
-	case CT_Forest:
-		field[to.X][to.Y]->AddNPC(field[from.X][from.Y]->GetNPC());
-		field[from.X][from.Y]->RemNPC();
-		field[to.X][to.Y]->GetNPC()->SetCrd(to);
-		return true;
-	default:
-		return false;
-	}
+	if (!field[to.X][to.Y]->Routable()) return false;
+	//movement
+	field[to.X][to.Y]->AddNPC(field[from.X][from.Y]->GetNPC());
+	field[from.X][from.Y]->RemNPC();
+	field[to.X][to.Y]->GetNPC()->SetCrd(to);
+	return true;
 }
