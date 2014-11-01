@@ -27,6 +27,7 @@ int main(int argc, char* argv[])
 		fprintf(stderr,"Error init ncurses (err %d)\n",ret);
 		exit(EXIT_FAILURE);
 	}
+	gui_update(); //early update
 
 	if (argc > 1)
 		seed = atol(argv[1]);

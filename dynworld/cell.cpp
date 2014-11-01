@@ -18,6 +18,7 @@ CWCell::CWCell(MSMRLCG* gen, CellType typ, CPoint2D coord)
 	npconcell = NULL;
 	crd = coord;
 	owner = 0;
+	ticks_since_update = 0;
 }
 
 CWCell::~CWCell()
@@ -30,6 +31,7 @@ bool CWCell::ChangeTo(CellType typ, CNPC* ref)
 	if (ref) {
 		if ((owner) && (owner != ref->GetSign())) return false;
 		owner = ref->GetSign();
+		ticks_since_update = 0;
 	}
 	cell_type = typ;
 	return true;
@@ -84,22 +86,37 @@ bool CWCell::PrintInfo(char* str, int m)
 
 	switch (cell_type) {
 	case CT_Empty:
-		snprintf(str,m-1,"The Void\n");
+		snprintf(str,m-1,"The Infinite Void\n");
+		break;
+	case CT_Water:
+		snprintf(str,m-1,"Cold refreshing water\n");
+		break;
+	case CT_Sand:
+		snprintf(str,m-1,"Nice warm sand\n");
+		break;
+	case CT_Forest:
+		snprintf(str,m-1,"Evergreen tree\n");
+		break;
+	case CT_Field:
+		snprintf(str,m-1,"Green grass\n");
+		break;
+	case CT_Mount:
+		snprintf(str,m-1,"Cold-stone mountain\n");
 		break;
 	case CT_HH_Empty:
 		snprintf(str,m-1,"House floor\n");
 		break;
 	case CT_HH_Wall:
-		snprintf(str,m-1,"Wall\n");
+		snprintf(str,m-1,"House wall\n");
 		break;
 	case CT_HH_Door:
 		snprintf(str,m-1,"Doorway\n");
 		break;
 	case CT_HH_Bed:
-		snprintf(str,m-1,"Bed\n");
+		snprintf(str,m-1,"A Bed\n");
 		break;
 	case CT_HH_Bowl:
-		snprintf(str,m-1,"Bowl\n");
+		snprintf(str,m-1,"Cooking place (bowl)\n");
 		break;
 	default:
 		return false;
@@ -108,6 +125,8 @@ bool CWCell::PrintInfo(char* str, int m)
 		buf = (char*)malloc(m);
 		if (!buf) return false;
 		snprintf(buf,m-1," owned by %ld\n",owner);
+		strncat(str,buf,m-1);
+		snprintf(buf,m-1," wears off in %d\n",CHR_MAXLIFESPAN/2-ticks_since_update);
 		strncat(str,buf,m-1);
 		free(buf);
 	}
@@ -145,17 +164,28 @@ bool CWCell::Routable(void)
 	}
 }
 
+void CWCell::ClaimPresence(npcsign_t npcs)
+{
+	if (npcs == owner) ticks_since_update = 0;
+}
+
 void CWCell::Quantum(void)
 {
 	if (npconcell) {
 		npconcell->SetOnBed(cell_type == CT_HH_Bed);
-		//npconcell->Quantum();
 		if (npconcell->GetIsDead()) {
 			if (gui_gettarget() == npconcell)
 				gui_settarget(NULL);
 			delete npconcell;
 			npconcell = NULL;
 			printlog("NPC dead @ %d:%d\n",crd.X,crd.Y);
+		}
+	}
+	if (owner) {
+		if (++ticks_since_update >= CHR_MAXLIFESPAN / 2) {
+			cell_type = CT_Field;
+			owner = 0;
+			printlog("Cell %d:%d wears out\n",crd.X,crd.Y);
 		}
 	}
 }

@@ -27,6 +27,7 @@ public:
 	bool PrintInfo(char* str, int m);
 	bool ViewThru(void);
 	bool Routable(void);
+	void ClaimPresence(npcsign_t npcs);
 	void Quantum(void);
 
 private:
@@ -35,6 +36,7 @@ private:
 	CPoint2D crd;
 	CNPC* npconcell;
 	npcsign_t owner;
+	int ticks_since_update;
 };
 
 

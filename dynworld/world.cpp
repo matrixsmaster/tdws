@@ -126,6 +126,9 @@ bool CWorld::ProcKey(int ch)
 	case 't':
 		gui_settarget(field[gui_getcursor().X][gui_getcursor().Y]->GetNPC());
 		break;
+	case 'p':
+		printlog("Population: %d\n",statistic.population);
+		break;
 	default: res = gui_prockey(ch);
 	}
 	return res;
@@ -179,6 +182,7 @@ void CWorld::ProcessNPC(CPoint2D pos)
 	dir = st.direction * 2; //to save the code :))
 	if ((dir < 0) || (dir >= 16)) return;
 
+	//do some physical interaction
 	s = 0;
 	switch (npc->GetState()) {
 	case NPC_Sleeping:
@@ -213,7 +217,15 @@ void CWorld::ProcessNPC(CPoint2D pos)
 		break;
 	}
 
+	//get visual feedback
 	RaytraceNPCVisual(npc,dir,pos);
+
+	//the last action: try to claim owned property nearby
+	for (dir = 0; dir < 8; dir++) {
+		pa = npc->GetCrd() + CPoint2D(direction_table[dir*2],direction_table[dir*2+1]);
+		if (ispointin(&pa,0,0,WRLD_SIZE_X,WRLD_SIZE_Y))
+			field[pa.X][pa.Y]->ClaimPresence(npc->GetSign());
+	}
 }
 
 #define PCNPC_VIEWMACRO if (!ispointin(&cr,ul.X,ul.Y,br.X,br.Y)) break;\
@@ -288,6 +300,8 @@ void CWorld::RaytraceNPCVisual(CNPC* npc, int dir, CPoint2D pos)
 	}
 	npc->PutVision(ul,vbuf);
 }
+
+#undef PCNPC_VIEWMACRO
 
 bool CWorld::MoveNPC(CPoint2D from, CPoint2D to)
 {

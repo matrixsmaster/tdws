@@ -212,9 +212,6 @@ void CNPC::Quantum(void)
 				if (++my_stats.direction > 7) my_stats.direction = 0;
 			} else
 				my_state = NPC_Idle;
-		} else {
-//			if (my_stats.aimed)
-//				SetDirectionTo();
 		}
 		break;
 
@@ -252,7 +249,6 @@ void CNPC::Quantum(void)
 		break;
 
 	case NPC_Building:
-		//set STA to 0 after that
 		my_plan.cur = CPoint2D(my_plan.done/(my_plan.sz.X-1),my_plan.done%(my_plan.sz.X-1));
 		my_stats.aim = my_plan.cur + my_plan.ul;
 		my_stats.aimed = true;
@@ -274,6 +270,7 @@ void CNPC::Quantum(void)
 				my_stats.aimed = false;
 				my_stats.direction = 4;
 				my_stats.own_home = true;
+				my_stats.stamina = 1;
 				my_state = NPC_Walking;
 				return;
 			}
