@@ -139,7 +139,7 @@ CPoint2D pointonline(CPoint2D s, CPoint2D e, int step)
 	return CPoint2D(cx,cy);
 }
 
-CPoint2D getnextpoint(CPoint2D s, CPoint2D e)
+CPoint2D getnextpoint(CPoint2D s, CPoint2D e, int* dir)
 {
 	int i;
 	float d,cd;
@@ -149,19 +149,20 @@ CPoint2D getnextpoint(CPoint2D s, CPoint2D e)
 	for (i = 0; i < 8; i++) {
 		c = CPoint2D(0);
 		switch (i) {
-		case 0: c.Y++; break;
-		case 1: c.X++; c.Y++; break;
+		case 0: c.Y--; break;
+		case 1: c.X++; c.Y--; break;
 		case 2: c.X++; break;
-		case 3: c.X++; c.Y--; break;
-		case 4: c.Y--; break;
-		case 5: c.X--; c.Y--; break;
+		case 3: c.X++; c.Y++; break;
+		case 4: c.Y++; break;
+		case 5: c.X--; c.Y++; break;
 		case 6: c.X--; break;
-		case 7: c.X--; c.Y++; break;
+		case 7: c.X--; c.Y--; break;
 		}
 		cd = distance(c,e);
 		if (cd < d) {
 			r = c;
 			d = cd;
+			if (dir) *dir = i;
 		}
 	}
 	return r + s;

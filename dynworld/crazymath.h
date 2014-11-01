@@ -28,7 +28,7 @@ int cmpint(const void* a, const void* b);
 int cmpint_rev(const void* a, const void* b);
 int selfrom(MSMRLCG* rnd, int* arr, const int len);
 CPoint2D pointonline(CPoint2D s, CPoint2D e, int step);
-CPoint2D getnextpoint(CPoint2D s, CPoint2D e);
+CPoint2D getnextpoint(CPoint2D s, CPoint2D e, int* dir);
 void normpoint(CPoint2D* pnt, int x0, int y0, int x1, int y1);
 void normpoint_b(CPoint2D* pnt, int x0, int y0, int x1, int y1);
 bool ispointin(CPoint2D* pnt, int x0, int y0, int x1, int y1);

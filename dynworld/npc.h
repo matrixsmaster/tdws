@@ -31,8 +31,10 @@ typedef struct SNPCStats {
 	int idle_count;
 	bool on_bed;
 	bool stuck;
-	bool want_change;
+	bool building;
 	bool own_home;
+	bool aimed;
+	float last_dist;
 	CPoint2D aim;
 	CNPC* talk_to;
 } NPCStats;
@@ -40,6 +42,7 @@ typedef struct SNPCStats {
 typedef struct SNPCVMemCell {
 	CellType typ;
 	char symbol;
+	bool routable;
 	npcsign_t owned;
 } NPCVMemCell;
 
@@ -50,8 +53,23 @@ typedef struct SNPCVisualIn {
 
 typedef struct SNPCBuildPlan {
 	CPoint2D ul; //upper-left corner
+	CPoint2D sz; //size
 	CellType map[WRLD_CHR_VIEW][WRLD_CHR_VIEW];
+	int done;
+	CPoint2D cur; //current point holder
 } NPCBuildPlan;
+
+typedef struct SNPCDisposition {
+	npcsign_t who;
+	int disp;
+} NPCDisposition;
+
+typedef struct SNPCCellChangeP {
+//	CPoint2D crd;
+	bool want_change;
+	CellType change_to;
+	bool changed;
+} NPCCellChangeP;
 
 
 class CNPC {
@@ -79,9 +97,10 @@ public:
 	NPCVisualIn* GetVision(void)	{ return (NPCVisualIn*)&view[0]; }
 	NPCVMemCell* GetVMemory(void)	{ return (NPCVMemCell*)&memory[0]; }
 	CPoint2D GetVisionUL(void)		{ return my_view_ul; }
-	bool GetWantCellChange(void)	{ return my_stats.want_change; }
+	NPCCellChangeP* GetCellChange(void);
 
 	void SetDirectionTo(CPoint2D aim);
+	void SetDirectionTo()			{ SetDirectionTo(my_stats.aim); }
 	int GetWantTalkTo(CNPC* one);
 	bool StartTalkTo(CNPC* caller);
 	void StopTalkTo(CNPC* caller);
@@ -105,6 +124,8 @@ private:
 	CPoint2D my_view_ul; 					//upper-left corner of current view
 	npcsign_t signature;
 	NPCBuildPlan my_plan;
+	NPCDisposition* disposits;
+	NPCCellChangeP cur_change;
 };
 
 #endif /* NPC_H_ */

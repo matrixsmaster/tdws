@@ -169,7 +169,7 @@ void CWorld::Quantum(void)
 void CWorld::ProcessNPC(CPoint2D pos)
 {
 	int s,dir;
-
+	bool tmp;
 	CPoint2D pa,pl;
 
 	CNPC* npc = field[pos.X][pos.Y]->GetNPC();
@@ -183,6 +183,7 @@ void CWorld::ProcessNPC(CPoint2D pos)
 	switch (npc->GetState()) {
 	case NPC_Sleeping:
 		return;
+
 	case NPC_Running:
 		s++;
 		//no break;
@@ -198,6 +199,16 @@ void CWorld::ProcessNPC(CPoint2D pos)
 			}
 		}
 		break;
+
+	case NPC_Building:
+		if ((npc->GetCellChange()) && (!(npc->GetCellChange()->changed))) {
+			tmp = field[pos.X][pos.Y]->ChangeTo(npc->GetCellChange()->change_to,npc);
+			npc->GetCellChange()->changed = tmp;
+			if (tmp) printlog("Cell changed %d:%d\n",pos.X,pos.Y);
+			else printlog("Cell not changed %d:%d\n",pos.X,pos.Y);
+		}
+		break;
+
 	default:
 		break;
 	}
@@ -211,6 +222,7 @@ void CWorld::ProcessNPC(CPoint2D pos)
 		if (vbuf[lin].b.typ == CT_Empty) {\
 			vbuf[lin].b.typ = field[cr.X][cr.Y]->GetType();\
 			vbuf[lin].b.symbol = field[cr.X][cr.Y]->Print(true);\
+			vbuf[lin].b.routable = field[cr.X][cr.Y]->Routable();\
 			if ((field[cr.X][cr.Y]->GetNPC()) && \
 					(field[cr.X][cr.Y]->GetNPC()->GetAge() + 2 < \
 							field[cr.X][cr.Y]->GetNPC()->GetGenome()[CHR_LIFESP]))\
@@ -243,11 +255,11 @@ void CWorld::RaytraceNPCVisual(CNPC* npc, int dir, CPoint2D pos)
 				switch (dir/2) {
 				case 2:
 					//look to right side
-					cr = getnextpoint(cr,CPoint2D(br.X,l));
+					cr = getnextpoint(cr,CPoint2D(br.X,l),NULL);
 					break;
 				default:
 					//look to left side
-					cr = getnextpoint(cr,CPoint2D(ul.X,l));
+					cr = getnextpoint(cr,CPoint2D(ul.X,l),NULL);
 					break;
 				}
 				PCNPC_VIEWMACRO
@@ -262,11 +274,11 @@ void CWorld::RaytraceNPCVisual(CNPC* npc, int dir, CPoint2D pos)
 				switch (dir/2) {
 				case 0: case 1: case 7:
 					//look to upper side
-					cr = getnextpoint(cr,CPoint2D(l,ul.Y));
+					cr = getnextpoint(cr,CPoint2D(l,ul.Y),NULL);
 					break;
 				default:
 					//look by lower side
-					cr = getnextpoint(cr,CPoint2D(l,br.Y));
+					cr = getnextpoint(cr,CPoint2D(l,br.Y),NULL);
 					break;
 				}
 				PCNPC_VIEWMACRO

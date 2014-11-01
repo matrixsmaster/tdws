@@ -18,7 +18,7 @@ public:
 	CWCell(MSMRLCG* gen, CellType typ, CPoint2D coord);
 	~CWCell(void);
 	CellType GetType(void) { return cell_type; }
-	bool ChangeTo(CellType typ, void* ref);
+	bool ChangeTo(CellType typ, CNPC* ref);
 	bool AddNPC(CNPC* ref);
 	bool SpawnNPC(void);
 	void RemNPC(void) { npconcell = NULL; }

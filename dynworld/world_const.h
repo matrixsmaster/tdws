@@ -36,7 +36,7 @@ enum CellType {
 
 #define CHR_MAXLIFESPAN 20123
 #define CHR_NUMTRAITS 8
-#define CHR_TALKDISTMUL ((float)(1/20))
+#define CHR_TALKDISTMUL 10
 #define CHR_TALKMAXAGE 4
 
 #define CHR_GENDER 0
@@ -48,14 +48,15 @@ enum CellType {
 #define CHR_TRAITC 6
 #define CHR_TRAITD 7
 #define CHR_LAZINS 8
+#define CHR_DISPML 9
 
-#define CHROM_LENGTH 9
+#define CHROM_LENGTH 10
 
 static const int chrom_max[CHROM_LENGTH] = {
 		4,300,100,CHR_MAXLIFESPAN,
 		CHR_NUMTRAITS,CHR_NUMTRAITS,
 		CHR_NUMTRAITS,CHR_NUMTRAITS,
-		50
+		50,50
 };
 
 #define CHAR_SIGN_CRC_Q 3

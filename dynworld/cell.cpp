@@ -25,8 +25,12 @@ CWCell::~CWCell()
 	if (npconcell) delete npconcell;
 }
 
-bool CWCell::ChangeTo(CellType typ, void* ref)
+bool CWCell::ChangeTo(CellType typ, CNPC* ref)
 {
+	if (ref) {
+		if ((owner) && (owner != ref->GetSign())) return false;
+		owner = ref->GetSign();
+	}
 	cell_type = typ;
 	return true;
 }
@@ -71,10 +75,43 @@ char CWCell::Print(bool raw)
 
 bool CWCell::PrintInfo(char* str, int m)
 {
+	char* buf;
 	if ((!str) || (m < 2)) return false;
 	memset(str,0,m);
-	if (!npconcell) return false;
-	return npconcell->PrintInfo(str,m);
+
+	if (npconcell)
+		return npconcell->PrintInfo(str,m);
+
+	switch (cell_type) {
+	case CT_Empty:
+		snprintf(str,m-1,"The Void\n");
+		break;
+	case CT_HH_Empty:
+		snprintf(str,m-1,"House floor\n");
+		break;
+	case CT_HH_Wall:
+		snprintf(str,m-1,"Wall\n");
+		break;
+	case CT_HH_Door:
+		snprintf(str,m-1,"Doorway\n");
+		break;
+	case CT_HH_Bed:
+		snprintf(str,m-1,"Bed\n");
+		break;
+	case CT_HH_Bowl:
+		snprintf(str,m-1,"Bowl\n");
+		break;
+	default:
+		return false;
+	}
+	if (owner) {
+		buf = (char*)malloc(m);
+		if (!buf) return false;
+		snprintf(buf,m-1," owned by %ld\n",owner);
+		strncat(str,buf,m-1);
+		free(buf);
+	}
+	return true;
 }
 
 bool CWCell::ViewThru(void)
