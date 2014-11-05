@@ -104,6 +104,9 @@ public:
 	int GetWantTalkTo(CNPC* one);
 	bool StartTalkTo(CNPC* caller);
 	void StopTalkTo(CNPC* caller);
+	int TalkAbout(int trait);
+	void SetDisposition(npcsign_t to, int x);
+	int GetDisposition(npcsign_t to);
 
 	void Quantum(void);
 
@@ -111,6 +114,8 @@ private:
 	bool PlanBuilding(void);
 	bool PlanTalking(void);
 	bool StartTalking(CNPC* npc);
+	NPCDisposition* FindNPCDisp(npcsign_t to, int* n);
+	void PrintDispositions(char* str, int m);
 
 	int chrom[CHROM_LENGTH];
 	MSMRLCG* rnd;

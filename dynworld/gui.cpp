@@ -250,23 +250,22 @@ void drawinfo()
 	snprintf(str,VIEWSTRBUF-1,"X %d  Y %d",pnt.X,pnt.Y);
 	mvwaddnstr(view,1,1,str,mygui.vw-2);
 
-	if ((pnt.X >= 0) && (pnt.X < wrldsize.X) &&
-			(pnt.Y >= 0) && (pnt.Y < wrldsize.Y)) {
+	if (!ispointin(&pnt,0,0,wrldsize.X,wrldsize.Y))
+		return;
 
-		ptr = myfield[pnt.X*wrldsize.Y+pnt.Y];
+	ptr = myfield[pnt.X*wrldsize.Y+pnt.Y];
 
-		if (ptr->PrintInfo(str,VIEWSTRBUF)) {
-			l = 3;
-			i = c = 0;
-			cs = str;
-			while (i < (int)strlen(str)) {
-				if ((c >= mygui.vw-3) || (str[i] == '\n')) {
-					mvwaddnstr(view,l++,1,cs,c);
-					c = 0;
-					cs = str + i + 1;
-				}
-				c++; i++;
+	if (ptr->PrintInfo(str,VIEWSTRBUF)) {
+		l = 3;
+		i = c = 0;
+		cs = str;
+		while ((i < (int)strlen(str)) && (l < mygui.vh-1)) {
+			if ((c >= mygui.vw-3) || (str[i] == '\n')) {
+				mvwaddnstr(view,l++,1,cs,c);
+				c = 0;
+				cs = str + i + 1;
 			}
+			c++; i++;
 		}
 	}
 
@@ -281,7 +280,11 @@ bool gui_prockey(int key)
 	case KEY_DOWN:	base.Y++; break;
 	case KEY_LEFT:	base.X--; break;
 	case KEY_RIGHT:	base.X++; break;
-	case KEY_HOME:	base = CPoint2D(0); break;
+	case 'w':		center.Y--; break;
+	case 's':		center.Y++; break;
+	case 'a':		center.X--; break;
+	case 'd':		center.X++; break;
+	case KEY_HOME:	base = CPoint2D(0); center = CPoint2D(mygui.fw/2,mygui.fh/2); break;
 	case KEY_END:	base = wrldsize - CPoint2D(mygui.fw-2,mygui.fh-2); break;
 	case '=':		mygui.zoom = (mygui.zoom > 1)? mygui.zoom-1:1; break;
 	case '-':		mygui.zoom++; break;
@@ -322,12 +325,26 @@ CPoint2D gui_getcursor()
 void gui_update()
 {
 	erase();
+
+	//center view to target
 	if (mygui.target)
 		base = mygui.target->GetCrd() - center;
+
+	//update all windows
 	drawfield();
 	drawinfo();
 	drawlog();
+
+	//make center point visible
 	mvchgat(center.Y+1,center.X+1,1,A_REVERSE | A_BOLD,0,NULL);
+
+	//make target's current aim visible
+	if (mygui.target && mygui.target->GetStats().aimed) {
+		CPoint2D pnt = mygui.target->GetStats().aim - base;
+		mvchgat(pnt.Y+1,pnt.X+1,1,A_REVERSE | A_DIM,0,NULL);
+	}
+
+	//draw it
 	move(0,0);
 	m_wupdate_all();
 }

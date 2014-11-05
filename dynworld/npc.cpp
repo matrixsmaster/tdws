@@ -133,7 +133,10 @@ bool CNPC::PrintInfo(char* str, int m)
 		snprintf(buf,m-1,"Aimed: %d:%d\n",my_stats.aim.X,my_stats.aim.Y);
 		strncat(str,buf,m-1);
 	}
+	if (my_stats.stuck) strncat(str,"Stuck!\n",m-1);
 	if (my_stats.building) strncat(str,"Wants to build a home\n",m-1);
+
+	PrintDispositions(str,m);
 
 	free(buf);
 	return true;
@@ -159,8 +162,10 @@ void CNPC::PutVision(CPoint2D ul, NPCVisualIn* arr)
 void CNPC::SetDirectionTo(CPoint2D aim)
 {
 	getnextpoint(my_coord,aim,&(my_stats.direction));
+	//debug output
 	if (gui_gettarget() == this) {
-		printlog("selects direction %d to %d:%d\n",my_stats.direction,aim.X,aim.Y);
+		printlog("selects direction %d from %d:%d to %d:%d\n",
+				my_stats.direction,my_coord.X,my_coord.Y,aim.X,aim.Y);
 	}
 }
 
@@ -177,13 +182,21 @@ void CNPC::Quantum(void)
 		return;
 	}
 
-	if (my_stats.aimed) {
-		if (my_stats.last_dist < distance(my_stats.aim,my_coord))
-			SetDirectionTo();
+	//do something to reach our goal (if it exists, of course)
+	if ((my_stats.aimed) && (my_stats.aim != my_coord)) {
+		//check correctness of currently selected direction
+		if (my_stats.last_dist <= distance(my_stats.aim,my_coord)) {
+			if (!my_stats.stuck) SetDirectionTo(); //we resolve it below
+		}
+		//remember the distance! :)
 		my_stats.last_dist = distance(my_stats.aim,my_coord);
+		//and switch to walking if we're near
+		if ((my_stats.last_dist < 3) && (my_state == NPC_Running))
+			my_state = NPC_Walking;
 	} else
 		my_stats.last_dist = 0;
 
+	//-------------------NPC' state machine-------------------
 	switch (my_state) {
 	case NPC_Idle:
 		my_stats.direction = -1;
@@ -209,6 +222,7 @@ void CNPC::Quantum(void)
 		if (my_stats.stuck) {
 			my_stats.stuck = false;
 			if (my_stats.aimed) {
+				//right-hand rule
 				if (++my_stats.direction > 7) my_stats.direction = 0;
 			} else
 				my_state = NPC_Idle;
@@ -228,10 +242,13 @@ void CNPC::Quantum(void)
 		break;
 
 	case NPC_Browsing:
-		if (my_stats.direction >= 0) { //already have some visual information
+		my_stats.aimed = false;
+		if (my_stats.direction >= 0) {
+			//already have some visual information
 			if (PlanTalking()) return;
 		}
-		if (++my_stats.direction >= 8) {//it's time to make a decision
+		if (++my_stats.direction >= 8) {
+			//it's time to make a decision
 			my_stats.direction = rnd->RangedNumber(8);
 			if ((!my_stats.own_home) && (!my_stats.building) && (PlanBuilding()))
 				my_state = NPC_Building;
@@ -245,7 +262,14 @@ void CNPC::Quantum(void)
 		if (my_stats.idle_count++ > my_stats.stamina) {
 			if (my_stats.talk_to) my_stats.talk_to->StopTalkTo(this);
 			my_state = NPC_Idle;
+			return;
 		}
+		if (my_stats.talk_to) //just in case
+			SetDisposition(my_stats.talk_to->GetSign(),
+					GetDisposition(my_stats.talk_to->GetSign() +
+					my_stats.talk_to->TalkAbout(chrom[rnd->RangedNumber(CHR_TRAITD-CHR_TRAITA+1)+CHR_TRAITA])));
+		else
+			my_state = NPC_Idle; //failsafe
 		break;
 
 	case NPC_Building:
@@ -329,7 +353,7 @@ bool CNPC::PlanBuilding(void)
 			cur = my_plan.ul + CPoint2D(i,j);
 			if (!ispointin(&cur,0,0,WRLD_SIZE_X,WRLD_SIZE_Y))
 				return false;
-			if ((memory[cur.X][cur.Y].owned) || (!memory[cur.X][cur.Y].routable))
+			if ((memory[cur.X][cur.Y].owned != signature) || (!memory[cur.X][cur.Y].routable))
 				return false;
 		}
 	}
@@ -357,16 +381,23 @@ bool CNPC::PlanTalking(void)
 	if (distance(my_coord,npc->GetCrd()) < 1.5f)
 		return StartTalking(npc);
 	else {
-		my_stats.aim = npc->GetCrd();
+		//set aim one cell near NPC
+		my_stats.aim = getnextpoint(npc->GetCrd(),my_coord,NULL);
 		my_stats.aimed = true;
 		my_state = NPC_Running;
 	}
 	return true;
 }
 
+NPCCellChangeP* CNPC::GetCellChange(void)
+{
+	if (!cur_change.want_change) return NULL;
+	return &cur_change;
+}
+
 int CNPC::GetWantTalkTo(CNPC* one)
 {
-	int i,val;
+	int val;
 	int aa = chrom[CHR_ATTRCT];
 	int ba = one->GetGenome()[CHR_ATTRCT];
 
@@ -374,26 +405,19 @@ int CNPC::GetWantTalkTo(CNPC* one)
 		return 0;
 	if (ba >= aa - rnd->RangedNumber(aa/2)) val = 2;
 	else return 0;
+
 	val += ba - aa;
 	val += (int)ceil(2.f / distance(one->GetCrd(),my_coord) * CHR_TALKDISTMUL);
 	aa = chrom[CHR_GENDER];
 	ba = one->GetGenome()[CHR_GENDER];
+
 	if (aa != ba) val *= 2;
 	if ((aa % 2) != (ba % 2)) val *= 2;
 
-	for (i = 0; i < chrom[CHR_DISPML]; i++) {
-		if (!disposits[i].who) break;
-		else if (disposits[i].who == one->GetSign()) {
-			val += disposits[i].disp;
-			break;
-		}
-	}
+	val += GetDisposition(one->GetSign());
 
-	if (gui_gettarget() == this) {
+	if (gui_gettarget() == this)
 		printlog("wants to talk to %ld as much as %d\n",one->GetSign(),val);
-		if ((i < chrom[CHR_DISPML]) && (disposits[i].who == one->GetSign()))
-			printlog("disposition %d\n",disposits[i].disp);
-	}
 
 	return val;
 }
@@ -431,8 +455,54 @@ void CNPC::StopTalkTo(CNPC* caller)
 	}
 }
 
-NPCCellChangeP* CNPC::GetCellChange(void)
+int CNPC::TalkAbout(int trait)
 {
-	if (!cur_change.want_change) return NULL;
-	return &cur_change;
+	int i;
+	for (i = CHR_TRAITA; i <= CHR_TRAITD; i++)
+		if (chrom[i] == trait)
+			return (CHR_TRAITD - i + 1);
+	return -1;
+}
+
+NPCDisposition* CNPC::FindNPCDisp(npcsign_t to, int* n)
+{
+	int i;
+	for (i = 0; i < chrom[CHR_DISPML]; i++)
+		if (disposits[i].who == to) {
+			if (n) *n = i;
+			return &disposits[i];
+		}
+	return NULL;
+}
+
+void CNPC::PrintDispositions(char* str, int m)
+{
+	int i;
+	if ((!str) || (m < 2)) return;
+	char* buf = (char*)malloc(m);
+	if (!buf) return;
+
+	for (i = 0; i < chrom[CHR_DISPML]; i++) {
+		if (!disposits[i].who) break;
+		snprintf(buf,m-1,"Disp. to %ld: %d\n",disposits[i].who,disposits[i].disp);
+		strncat(str,buf,m-1);
+	}
+
+	free(buf);
+}
+
+void CNPC::SetDisposition(npcsign_t to, int x)
+{
+	int i,p;
+	if (!FindNPCDisp(to,&p)) p = chrom[CHR_DISPML] - 1;
+	for (i = p; i > 0; i--)
+		disposits[i] = disposits[i-1];
+	disposits[0].who = to;
+	disposits[0].disp = x;
+}
+
+int CNPC::GetDisposition(npcsign_t to)
+{
+	NPCDisposition* d = FindNPCDisp(to,NULL);
+	return ((d)? d->disp:0);
 }
