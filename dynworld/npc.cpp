@@ -159,14 +159,22 @@ void CNPC::PutVision(CPoint2D ul, NPCVisualIn* arr)
 	my_view_ul = ul;
 }
 
-void CNPC::SetDirectionTo(CPoint2D aim)
+//void CNPC::SetDirectionTo(CPoint2D aim)
+//{
+//	getnextpoint(my_coord,aim,&(my_stats.direction));
+//	//debug output
+//	if (gui_gettarget() == this) {
+//		printlog("selects direction %d from %d:%d to %d:%d\n",
+//				my_stats.direction,my_coord.X,my_coord.Y,aim.X,aim.Y);
+//	}
+//}
+
+bool CNPC::AimTo(CPoint2D aim)
 {
-	getnextpoint(my_coord,aim,&(my_stats.direction));
-	//debug output
-	if (gui_gettarget() == this) {
-		printlog("selects direction %d from %d:%d to %d:%d\n",
-				my_stats.direction,my_coord.X,my_coord.Y,aim.X,aim.Y);
-	}
+	//TODO: route the path
+	my_stats.aim = aim;
+	my_stats.aimed = true;
+	return true;
 }
 
 void CNPC::Quantum(void)
@@ -183,18 +191,18 @@ void CNPC::Quantum(void)
 	}
 
 	//do something to reach our goal (if it exists, of course)
-	if ((my_stats.aimed) && (my_stats.aim != my_coord)) {
-		//check correctness of currently selected direction
-		if (my_stats.last_dist <= distance(my_stats.aim,my_coord)) {
-			if (!my_stats.stuck) SetDirectionTo(); //we resolve it below
-		}
-		//remember the distance! :)
-		my_stats.last_dist = distance(my_stats.aim,my_coord);
-		//and switch to walking if we're near
-		if ((my_stats.last_dist < 3) && (my_state == NPC_Running))
-			my_state = NPC_Walking;
-	} else
-		my_stats.last_dist = 0;
+//	if ((my_stats.aimed) && (my_stats.aim != my_coord)) {
+//		//check correctness of currently selected direction
+//		if (my_stats.last_dist <= distance(my_stats.aim,my_coord)) {
+//			if (!my_stats.stuck) SetDirectionTo(); //we resolve it below
+//		}
+//		//remember the distance! :)
+//		my_stats.last_dist = distance(my_stats.aim,my_coord);
+//		//and switch to walking if we're near
+//		if ((my_stats.last_dist < 3) && (my_state == NPC_Running))
+//			my_state = NPC_Walking;
+//	} else
+//		my_stats.last_dist = 0;
 
 	//-------------------NPC' state machine-------------------
 	switch (my_state) {
@@ -223,10 +231,13 @@ void CNPC::Quantum(void)
 			my_stats.stuck = false;
 			if (my_stats.aimed) {
 				//right-hand rule
-				if (++my_stats.direction > 7) my_stats.direction = 0;
+//				if (++my_stats.direction > 7) my_stats.direction = 0;
+				my_stats.direction = -1; //reset direction
+				if (!AimTo()) my_state = NPC_Browsing;
 			} else
 				my_state = NPC_Idle;
 		}
+		//TODO: move along routed path
 		break;
 
 	case NPC_Sleeping:
@@ -274,14 +285,21 @@ void CNPC::Quantum(void)
 
 	case NPC_Building:
 		my_plan.cur = CPoint2D(my_plan.done/(my_plan.sz.X-1),my_plan.done%(my_plan.sz.X-1));
-		my_stats.aim = my_plan.cur + my_plan.ul;
-		my_stats.aimed = true;
+//		my_stats.aim = my_plan.cur + my_plan.ul;
+//		my_stats.aimed = true;
+		if (!AimTo(my_plan.cur + my_plan.ul)) {
+			//unable to reach destination cell
+//			my_stats.building = false;
+			my_state = NPC_Idle; //let's wait
+			return;
+		}
 
-		if (!my_stats.building) //begin
+		if (!my_stats.building) //well, let's do it
 			my_stats.building = true;
 
 		if (my_coord != my_stats.aim) {
-			SetDirectionTo();
+//			SetDirectionTo();
+//			AimTo();
 			my_state = NPC_Walking;
 			return;
 		}
@@ -382,9 +400,9 @@ bool CNPC::PlanTalking(void)
 		return StartTalking(npc);
 	else {
 		//set aim one cell near NPC
-		my_stats.aim = getnextpoint(npc->GetCrd(),my_coord,NULL);
-		my_stats.aimed = true;
-		my_state = NPC_Running;
+//		my_stats.aim = getnextpoint(npc->GetCrd(),my_coord,NULL);
+//		my_stats.aimed = true;
+		my_state = AimTo(getnextpoint(npc->GetCrd(),my_coord,NULL))? NPC_Running:NPC_Browsing;
 	}
 	return true;
 }

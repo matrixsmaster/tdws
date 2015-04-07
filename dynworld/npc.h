@@ -99,8 +99,8 @@ public:
 	CPoint2D GetVisionUL(void)		{ return my_view_ul; }
 	NPCCellChangeP* GetCellChange(void);
 
-	void SetDirectionTo(CPoint2D aim);
-	void SetDirectionTo()			{ SetDirectionTo(my_stats.aim); }
+//	void SetDirectionTo(CPoint2D aim);
+//	void SetDirectionTo()			{ SetDirectionTo(my_stats.aim); }
 	int GetWantTalkTo(CNPC* one);
 	bool StartTalkTo(CNPC* caller);
 	void StopTalkTo(CNPC* caller);
@@ -116,6 +116,8 @@ private:
 	bool StartTalking(CNPC* npc);
 	NPCDisposition* FindNPCDisp(npcsign_t to, int* n);
 	void PrintDispositions(char* str, int m);
+	bool AimTo(CPoint2D aim);
+	bool AimTo(void)				{ return AimTo(my_stats.aim); }
 
 	int chrom[CHROM_LENGTH];
 	MSMRLCG* rnd;

@@ -13,13 +13,12 @@
 #include "CPoint2D.h"
 #include "gui.h"
 #include "gui_help.h"
-#include "crazymath.h" //for debug only
+#include "crazymath.h"
 
 static WINDOW *scrn, *field, *view, *log;
 static struct SGUISet mygui;
 static CWCell** myfield;
 static CPoint2D wrldsize,base,center;
-CPoint2D oldpnt;
 
 static void remwindows()
 {
@@ -309,16 +308,12 @@ void gui_settarget(CNPC* trg)
 {
 	mygui.target = trg;
 	if (!trg) mygui.showvision = 0;
-	else oldpnt = trg->GetCrd();
 }
 
 CPoint2D gui_getcursor()
 {
 	CPoint2D r = (base + center) * mygui.zoom;
-	if (r.X < 0) r.X = 0;
-	if (r.X >= WRLD_SIZE_X) r.X = WRLD_SIZE_X - 1;
-	if (r.Y < 0) r.Y = 0;
-	if (r.Y >= WRLD_SIZE_Y) r.Y = WRLD_SIZE_Y - 1;
+	normpoint(&r,0,0,WRLD_SIZE_X,WRLD_SIZE_Y);
 	return r;
 }
 
@@ -366,7 +361,11 @@ int gui_init()
 
 	scrn = initscr();
 	if (!scrn) return 1;
-	if (has_colors() == FALSE) return 2;
+
+	if (has_colors() == FALSE) {
+		gui_kill();
+		return 2;
+	}
     
     noecho();
     cbreak();
