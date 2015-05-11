@@ -24,7 +24,7 @@ public:
 	CPoint2D & operator += (const int add) { X+=add; Y+=add; return *this; }
 	CPoint2D & operator -= (const int sub) { X-=sub; Y-=sub; return *this; }
 //	CPoint2D & operator += (const CPoint2D add) { X+=add.X; Y+=add.X; return *this; }
-//	CPoint2D & operator -= (const CPoint2D sub) { X-=sub.Y; Y-=sub.Y; return *this; }
+//	CPoint2D & operator -= (const CPoint2D sub) { X-=sub.X; Y-=sub.Y; return *this; }
 	CPoint2D & operator *= (const int imul) { X*=imul; Y*=imul; return *this; }
 	CPoint2D & operator /= (const int idiv) { X/=idiv; Y/=idiv; return *this; }
 	CPoint2D operator * (const int imul) const { return CPoint2D((X*imul),(Y*imul)); }
